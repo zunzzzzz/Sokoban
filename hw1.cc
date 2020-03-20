@@ -26,7 +26,7 @@ private:
 };
 int main(int argc, char** argv) {
     ifstream file(argv[1]);
-    vector<State> state;
+    vector<State> all_state;
     // initial State
     State init_state;
     string tmp;
@@ -59,5 +59,8 @@ int main(int argc, char** argv) {
     }
     cout << init_state.player.x << " " << init_state.player.y << endl;
     cout << init_state.obstacle.size() << endl;
-    state.push_back(init_state);
+    all_state.push_back(init_state);
+    vector<State> todo_queue(all_state);
+    cout << &todo_queue << endl;
+    cout << &all_state << endl;
 }
