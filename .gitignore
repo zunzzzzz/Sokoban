@@ -3,3 +3,4 @@
 
 # ignore executable
 hw1
+*.exe
