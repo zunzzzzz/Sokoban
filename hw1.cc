@@ -35,19 +35,29 @@ int main(int argc, char** argv) {
     };
     for(int height_iter = 0; height_iter < init_state.map.size(); height_iter++) {
         for(int width_iter = 0; width_iter < init_state.map[height_iter].length(); width_iter++) {
+            // find player
             if(init_state.map[height_iter][width_iter] == 'o' || init_state.map[height_iter][width_iter] == 'O') {
                 init_state.player.x = width_iter;
                 init_state.player.y = height_iter;
             }
+            // find obstacle
             if(init_state.map[height_iter][width_iter] == 'x' || init_state.map[height_iter][width_iter] == 'X') {
                 Obstacle tmp_obstacle;
                 tmp_obstacle.x = width_iter;
                 tmp_obstacle.y = height_iter;
+                if(init_state.map[height_iter][width_iter] == 'X') {
+                    tmp_obstacle.corret_position = true;
+                }
+                else if(init_state.map[height_iter][width_iter] == 'x') {
+                    tmp_obstacle.corret_position = false;
+                }
+                init_state.obstacle.push_back(tmp_obstacle);
             }
             cout << init_state.map[height_iter][width_iter];
         }
         cout << endl;
     }
     cout << init_state.player.x << " " << init_state.player.y << endl;
+    cout << init_state.obstacle.size() << endl;
     state.push_back(init_state);
 }
