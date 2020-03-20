@@ -4,6 +4,13 @@
 #include <vector>
 
 using namespace std;
+class Obstacle {
+public:
+    int x;
+    int y;
+    bool corret_position;
+private:
+};
 class Player {
 public:
     int x;
@@ -14,6 +21,7 @@ class State {
 public:
     Player player;
     vector<string> map;
+    vector<Obstacle> obstacle;
 private:
 };
 int main(int argc, char** argv) {
@@ -30,6 +38,11 @@ int main(int argc, char** argv) {
             if(init_state.map[height_iter][width_iter] == 'o' || init_state.map[height_iter][width_iter] == 'O') {
                 init_state.player.x = width_iter;
                 init_state.player.y = height_iter;
+            }
+            if(init_state.map[height_iter][width_iter] == 'x' || init_state.map[height_iter][width_iter] == 'X') {
+                Obstacle tmp_obstacle;
+                tmp_obstacle.x = width_iter;
+                tmp_obstacle.y = height_iter;
             }
             cout << init_state.map[height_iter][width_iter];
         }
