@@ -1,5 +1,5 @@
 # ignore .vscode
 .vscode/
 
-#ignore executable
+# ignore executable
 hw1
