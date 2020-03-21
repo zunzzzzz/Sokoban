@@ -170,9 +170,9 @@ int main(int argc, char** argv) {
                 }
                 init_state.obstacle.push_back(tmp_obstacle);
             }
-            cout << init_state.map[height_iter][width_iter];
+            // cout << init_state.map[height_iter][width_iter];
         }
-        cout << endl;
+        // cout << endl;
     }
     all_state.push_back(init_state);
     vector<State> todo_queue(all_state);
@@ -192,18 +192,18 @@ int main(int argc, char** argv) {
             }
         } 
         if(correct_count == current_state.obstacle.size()) {
-            ShowMap(current_state);
+            // ShowMap(current_state);
             cout << current_state.output << endl;
             clock_t timer2 = clock();
-            cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
+            // cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
             break;
         }
+        #pragma omp parallel for
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = Move(dir_iter, current_state);
             if(new_state.is_legal) {
                 bool is_new_state = true;
-                #pragma omp parallel for
                 for(int state_iter = all_state.size(); state_iter >= 0; state_iter--) {
                     if(all_state[state_iter].player.x == new_state.player.x && all_state[state_iter].player.y == new_state.player.y) {
                         //same player position
