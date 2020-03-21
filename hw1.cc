@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <time.h>
+#include <omp.h>
 
 #define UP 0
 #define LEFT 1
@@ -178,9 +179,9 @@ int main(int argc, char** argv) {
     clock_t timer1 = clock();
     while(true) {
         // cout << "FIND " << all_state.size() << endl;
-        // take and pop the last element
-        State current_state = todo_queue.back();
-        todo_queue.pop_back();
+        // take and pop the first element
+        State current_state = todo_queue.front();
+        todo_queue.erase(todo_queue.begin());
         // ShowMap(current_state);
         // check whether question is solved
         int correct_count = 0;
@@ -200,11 +201,10 @@ int main(int argc, char** argv) {
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = Move(dir_iter, current_state);
-            // cout << "X" << endl;
-            // new_state = Move(RIGHT, current_state);
             if(new_state.is_legal) {
                 bool is_new_state = true;
-                for(int state_iter = 0; state_iter < all_state.size(); state_iter++) {
+                #pragma omp parallel for
+                for(int state_iter = all_state.size(); state_iter >= 0; state_iter--) {
                     if(all_state[state_iter].player.x == new_state.player.x && all_state[state_iter].player.y == new_state.player.y) {
                         //same player position
                     }
