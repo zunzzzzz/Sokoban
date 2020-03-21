@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <time.h>
 
 #define UP 0
 #define LEFT 1
@@ -40,7 +41,7 @@ void ShowMap(State state) {
     }
     cout << "Obstacle position : " << endl;
     for(int iter_ = 0; iter_ < state.obstacle.size(); iter_++) {
-        cout << state.obstacle[iter_].y << " " << state.obstacle[iter_].x << endl;
+        cout << state.obstacle[iter_].y << " " << state.obstacle[iter_].x << " " << state.obstacle[iter_].corret_position << endl;
     }
 }
 State Move(int direction, State current_state) {
@@ -93,9 +94,27 @@ State Move(int direction, State current_state) {
         }
         if(current_state.map[two_step_y][two_step_x] == ' ') {
             new_state.map[two_step_y][two_step_x] = 'x';
+            // update obstacle position
+            for(int iter_ = 0; iter_ < new_state.obstacle.size(); iter_++) {
+                if(one_step_y == new_state.obstacle[iter_].y && one_step_x == new_state.obstacle[iter_].x) {
+                    new_state.obstacle[iter_].x = two_step_x;
+                    new_state.obstacle[iter_].y = two_step_y;
+                    new_state.obstacle[iter_].corret_position = false;
+                    break;
+                }
+            }
         }
         else {
             new_state.map[two_step_y][two_step_x] = 'X';
+            // update obstacle position
+            for(int iter_ = 0; iter_ < new_state.obstacle.size(); iter_++) {
+                if(one_step_y == new_state.obstacle[iter_].y && one_step_x == new_state.obstacle[iter_].x) {
+                    new_state.obstacle[iter_].x = two_step_x;
+                    new_state.obstacle[iter_].y = two_step_y;
+                    new_state.obstacle[iter_].corret_position = true;
+                    break;
+                }
+            }
         }
         new_state.is_legal = true;
     }
@@ -112,15 +131,7 @@ State Move(int direction, State current_state) {
     // update player position
     new_state.player.x = one_step_x;
     new_state.player.y = one_step_y;
-    // update obstacle position
-    for(int iter_ = 0; iter_ < new_state.obstacle.size(); iter_++) {
-        if(one_step_y == new_state.obstacle[iter_].y && one_step_x == new_state.obstacle[iter_].x) {
-            new_state.obstacle[iter_].x = two_step_x;
-            new_state.obstacle[iter_].y = two_step_y;
-            break;
-        }
-    }
-    ShowMap(new_state);
+    // ShowMap(new_state);
     return new_state;
 }
 int main(int argc, char** argv) {
@@ -156,15 +167,15 @@ int main(int argc, char** argv) {
         }
         cout << endl;
     }
-    cout << init_state.player.x << " " << init_state.player.y << endl;
-    cout << init_state.obstacle.size() << endl;
     all_state.push_back(init_state);
     vector<State> todo_queue(all_state);
-
+    clock_t timer1 = clock();
     while(true) {
+        // cout << "FIND " << all_state.size() << endl;
         // take and pop the last element
         State current_state = todo_queue.back();
         todo_queue.pop_back();
+        // ShowMap(current_state);
         // check whether question is solved
         int correct_count = 0;
         for(int iter_ = 0; iter_ < current_state.obstacle.size(); iter_++) {
@@ -174,17 +185,47 @@ int main(int argc, char** argv) {
             }
         } 
         if(correct_count == current_state.obstacle.size()) {
+            ShowMap(current_state);
+            clock_t timer2 = clock();
+            cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
             break;
         }
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
-            // new_state = Move(dir_iter, current_state);
-            new_state = Move(RIGHT, current_state);
+            new_state = Move(dir_iter, current_state);
+            // cout << "X" << endl;
+            // new_state = Move(RIGHT, current_state);
             if(new_state.is_legal) {
-                todo_queue.push_back(new_state);
-                all_state.push_back(new_state);
+                bool is_new_state = true;
+                for(int state_iter = 0; state_iter < all_state.size(); state_iter++) {
+                    if(all_state[state_iter].player.x == new_state.player.x && all_state[state_iter].player.y == new_state.player.y) {
+                        //same player position
+                    }
+                    else {
+                        continue;
+                    }
+                    int same_count = 0;
+                    for(int newstate_obstacle_iter = 0; newstate_obstacle_iter < new_state.obstacle.size(); newstate_obstacle_iter++) {
+                        for(int obstacle_iter = 0; obstacle_iter < all_state[state_iter].obstacle.size(); obstacle_iter++) {
+                            if(all_state[state_iter].obstacle[obstacle_iter].x == new_state.obstacle[newstate_obstacle_iter].x && all_state[state_iter].obstacle[obstacle_iter].y == new_state.obstacle[newstate_obstacle_iter].y) {
+                                same_count++;
+                                break;
+                            }
+                        }
+                    }
+                    if(same_count == new_state.obstacle.size()) {
+                        is_new_state = false;
+                        
+                        break;
+                    }
+                }
+                if(is_new_state) {
+                    todo_queue.push_back(new_state);
+                    all_state.push_back(new_state);
+                }
             }
         }
+        // cout << todo_queue.size() << endl;
     }
     return 0;
 }

@@ -109,6 +109,7 @@ def main(filename: str):
     todo = collections.deque([state])
     while todo:
         m, (y, x) = currstate = todo.popleft()
+        print(len(visited))
         if is_solved(m):
             return ''.join(visited[currstate])
         for key, (dy, dx) in DYDX.items():
