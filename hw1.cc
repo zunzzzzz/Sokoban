@@ -15,6 +15,7 @@ public:
     int x;
     int y;
     bool corret_position;
+    
 private:
 };
 class Player {
@@ -29,6 +30,7 @@ public:
     vector<string> map;
     vector<Obstacle> obstacle;
     bool is_legal = true;
+    string output;
 private:
 };
 void ShowMap(State state) {
@@ -58,24 +60,28 @@ State Move(int direction, State current_state) {
         two_step_x = x;
         one_step_y = y - 1;
         two_step_y = y - 2;
+        new_state.output += "W";
     }
     else if(direction == LEFT) {
         one_step_x = x - 1;
         two_step_x = x - 2;
         one_step_y = y;
         two_step_y = y;
+        new_state.output += "A";
     }
     else if(direction == DOWN) {
         one_step_x = x;
         two_step_x = x;
         one_step_y = y + 1;
         two_step_y = y + 2;
+        new_state.output += "S";
     }
     else if(direction == RIGHT) {
         one_step_x = x + 1;
         two_step_x = x + 2;
         one_step_y = y;
         two_step_y = y;
+        new_state.output += "D";
     }
     if(current_state.map[one_step_y][one_step_x] == ' ') {
         new_state.map[one_step_y][one_step_x] = 'o';
@@ -186,6 +192,7 @@ int main(int argc, char** argv) {
         } 
         if(correct_count == current_state.obstacle.size()) {
             ShowMap(current_state);
+            cout << current_state.output << endl;
             clock_t timer2 = clock();
             cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
             break;
