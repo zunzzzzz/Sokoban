@@ -31,7 +31,7 @@ public:
 private:
 };
 State Move(int direction, State current_state) {
-    State new_state;
+    State new_state = current_state;
     int x = current_state.player.x;
     int y = current_state.player.y;
     int one_step_x;
@@ -40,16 +40,72 @@ State Move(int direction, State current_state) {
     int two_step_y;
     // cout << current_state.map[y][x] << endl;
     if(direction == UP) {
-
+        one_step_x = x;
+        two_step_x = x;
+        one_step_y = y - 1;
+        two_step_y = y - 2;
     }
     else if(direction == LEFT) {
-
+        one_step_x = x - 1;
+        two_step_x = x - 2;
+        one_step_y = y;
+        two_step_y = y;
     }
     else if(direction == DOWN) {
-
+        one_step_x = x;
+        two_step_x = x;
+        one_step_y = y + 1;
+        two_step_y = y + 2;
     }
     else if(direction == RIGHT) {
+        one_step_x = x + 1;
+        two_step_x = x + 2;
+        one_step_y = y;
+        two_step_y = y;
+    }
+    if(current_state.map[one_step_y][one_step_x] == ' ') {
+        new_state.map[one_step_y][one_step_x] = 'o';
+        new_state.is_legal = true;
+    }
+    else if(current_state.map[one_step_y][one_step_x] == '.') {
+        new_state.map[one_step_y][one_step_x] = 'O';
+        new_state.is_legal = true;
+    }
+    else if((current_state.map[one_step_y][one_step_x] == 'X' || current_state.map[one_step_y][one_step_x] == 'x') && (current_state.map[two_step_y][two_step_x] == ' ' || current_state.map[two_step_y][two_step_x] == '.')) {
+        if(current_state.map[one_step_y][one_step_x] == 'x') {
+            new_state.map[one_step_y][one_step_x] = 'o';
+        }
+        else {
+            new_state.map[one_step_y][one_step_x] = 'O';
+        }
+        if(current_state.map[two_step_y][two_step_x] == ' ') {
+            new_state.map[two_step_y][two_step_x] = 'x';
+        }
+        else {
+            new_state.map[two_step_y][two_step_x] = 'X';
+        }
+        new_state.is_legal = true;
+    }
+    else {
+        new_state.is_legal = false;
+    }
 
+    if(current_state.map[y][x] == 'o') {
+        new_state.map[y][x] = ' ';
+    }
+    else {
+        new_state.map[y][x] = '.';
+    }
+    // update player position
+    new_state.player.x = one_step_x;
+    new_state.player.y = one_step_y;
+    // update obstacle position
+    for(int iter_ = 0; iter_ < new_state.obstacle.size(); iter_++) {
+        if(one_step_y == new_state.obstacle[iter_].y && one_step_x == new_state.obstacle[iter_].x) {
+            new_state.obstacle[iter_].x = two_step_x;
+            new_state.obstacle[iter_].y = two_step_y;
+            break;
+        }
     }
     return new_state;
 }
