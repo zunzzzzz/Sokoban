@@ -30,6 +30,19 @@ public:
     bool is_legal = true;
 private:
 };
+void ShowMap(State state) {
+    cout << "Player position : " << state.player.y << " " << state.player.x << endl;
+    for(int height_iter = 0; height_iter < state.map.size(); height_iter++) {
+        for(int width_iter = 0; width_iter < state.map[height_iter].length(); width_iter++) {
+            cout << state.map[height_iter][width_iter];
+        }
+        cout << endl;
+    }
+    cout << "Obstacle position : " << endl;
+    for(int iter_ = 0; iter_ < state.obstacle.size(); iter_++) {
+        cout << state.obstacle[iter_].y << " " << state.obstacle[iter_].x << endl;
+    }
+}
 State Move(int direction, State current_state) {
     State new_state = current_state;
     int x = current_state.player.x;
@@ -107,6 +120,7 @@ State Move(int direction, State current_state) {
             break;
         }
     }
+    ShowMap(new_state);
     return new_state;
 }
 int main(int argc, char** argv) {
@@ -164,7 +178,8 @@ int main(int argc, char** argv) {
         }
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
-            new_state = Move(dir_iter, current_state);
+            // new_state = Move(dir_iter, current_state);
+            new_state = Move(RIGHT, current_state);
             if(new_state.is_legal) {
                 todo_queue.push_back(new_state);
                 all_state.push_back(new_state);
