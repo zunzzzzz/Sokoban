@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <time.h>
+#include <queue>
 #include <omp.h>
 
 #define UP 0
@@ -175,13 +176,14 @@ int main(int argc, char** argv) {
         // cout << endl;
     }
     all_state.push_back(init_state);
-    vector<State> todo_queue(all_state);
+    queue<State> todo_queue;
+    todo_queue.push(init_state);
     clock_t timer1 = clock();
     while(true) {
         // cout << "FIND " << all_state.size() << endl;
         // take and pop the first element
         State current_state = todo_queue.front();
-        todo_queue.erase(todo_queue.begin());
+        todo_queue.pop();
         // ShowMap(current_state);
         // check whether question is solved
         int correct_count = 0;
@@ -226,8 +228,9 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
+                
                 if(is_new_state) {
-                    todo_queue.push_back(new_state);
+                    todo_queue.push(new_state);
                     all_state.push_back(new_state);
                 }
             }
