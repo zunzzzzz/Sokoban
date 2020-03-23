@@ -106,14 +106,18 @@ def main(filename: str):
     visited = {}
     state = loadstate(filename)
     visited = {state: []}
+    
     todo = collections.deque([state])
+    print(type(visited))
+    print(type(todo))
     while todo:
         m, (y, x) = currstate = todo.popleft()
         # print(len(visited))
         if is_solved(m):
             return ''.join(visited[currstate])
         for key, (dy, dx) in DYDX.items():
-            if newstate := try_move(m, y, x, dy, dx):
+            newstate = try_move(m, y, x, dy, dx)
+            if newstate:
                 # print(newstate)
                 # print(key)
                 if newstate not in visited:

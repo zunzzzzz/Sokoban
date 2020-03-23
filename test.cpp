@@ -5,6 +5,7 @@
 #include <time.h>
 #include <queue>
 #include <omp.h>
+#include <map>
 
 #define UP 0
 #define LEFT 1
@@ -175,9 +176,11 @@ int main(int argc, char** argv) {
         }
         // cout << endl;
     }
+    map<vector<string>, string> visited;
     all_state.push_back(init_state);
     queue<State> todo_queue;
     todo_queue.push(init_state);
+    visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
     clock_t timer1 = clock();
     while(true) {
         // cout << "FIND " << all_state.size() << endl;
@@ -205,33 +208,36 @@ int main(int argc, char** argv) {
             State new_state;
             new_state = Move(dir_iter, current_state);
             if(new_state.is_legal) {
-                bool is_new_state = true;
-                for(int state_iter = all_state.size(); state_iter >= 0; state_iter--) {
-                    if(all_state[state_iter].player.x == new_state.player.x && all_state[state_iter].player.y == new_state.player.y) {
-                        //same player position
-                    }
-                    else {
-                        continue;
-                    }
-                    int same_count = 0;
-                    for(int newstate_obstacle_iter = 0; newstate_obstacle_iter < new_state.obstacle.size(); newstate_obstacle_iter++) {
-                        for(int obstacle_iter = 0; obstacle_iter < all_state[state_iter].obstacle.size(); obstacle_iter++) {
-                            if(all_state[state_iter].obstacle[obstacle_iter].x == new_state.obstacle[newstate_obstacle_iter].x && all_state[state_iter].obstacle[obstacle_iter].y == new_state.obstacle[newstate_obstacle_iter].y) {
-                                same_count++;
-                                break;
-                            }
-                        }
-                    }
-                    if(same_count == new_state.obstacle.size()) {
-                        is_new_state = false;
+                // for(int state_iter = all_state.size(); state_iter >= 0; state_iter--) {
+                //     if(all_state[state_iter].player.x == new_state.player.x && all_state[state_iter].player.y == new_state.player.y) {
+                //         //same player position
+                //     }
+                //     else {
+                //         continue;
+                //     }
+                //     int same_count = 0;
+                //     for(int newstate_obstacle_iter = 0; newstate_obstacle_iter < new_state.obstacle.size(); newstate_obstacle_iter++) {
+                //         for(int obstacle_iter = 0; obstacle_iter < all_state[state_iter].obstacle.size(); obstacle_iter++) {
+                //             if(all_state[state_iter].obstacle[obstacle_iter].x == new_state.obstacle[newstate_obstacle_iter].x && all_state[state_iter].obstacle[obstacle_iter].y == new_state.obstacle[newstate_obstacle_iter].y) {
+                //                 same_count++;
+                //                 break;
+                //             }
+                //         }
+                //     }
+                //     if(same_count == new_state.obstacle.size()) {
+                //         is_new_state = false;
                         
-                        break;
-                    }
+                //         break;
+                //     }
+                // }
+                map<vector<string>, string>::iterator it = visited.find(new_state.map);
+                if(it != visited.end()) {
+
                 }
-                
-                if(is_new_state) {
+                else {
                     todo_queue.push(new_state);
                     all_state.push_back(new_state);
+                    visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
                 }
             }
         }
