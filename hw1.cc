@@ -2,9 +2,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <time.h>
 #include <queue>
 #include <omp.h>
+#include <unordered_map>
 #include <map>
 
 #define UP 0
@@ -13,6 +13,8 @@
 #define RIGHT 3
 
 using namespace std;
+
+
 class Obstacle {
 public:
     int x;
@@ -138,8 +140,41 @@ public:
         // ShowMap(new_state);
         return new_state;
     }
-    bool CheckDeadlock() {
-        
+    bool WallOrObstacle(int y, int x) {
+        if(map[y][x] == 'x' || map[y][x] == '#') return true;
+        else return false;
+    }
+    void CheckDeadlock() {
+        vector<Obstacle>::iterator it;
+        for(it = obstacle.begin(); it < obstacle.end(); it++) {
+            int x = it->x;
+            int y = it->y;
+            // cout << y << " " << x << endl;
+            
+            if(map[y][x] == 'x') {
+                //upright
+                if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x+1) && WallOrObstacle(y, x+1)) {
+                    is_legal = false;
+                    break;
+                }
+                //downright
+                if(WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x+1) && WallOrObstacle(y, x+1)) {
+                    is_legal = false;
+                    break;
+                }
+                //downleft
+                if(WallOrObstacle(y, x-1) && WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x-1)) {
+                    is_legal = false;
+                    break;
+                }
+                //upleft
+                if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x-1) && WallOrObstacle(y, x-1)) {
+                    is_legal = false;
+                    break;
+                }
+            }
+            
+        }
     }
 };
 void ShowMap(State state) {
@@ -193,18 +228,16 @@ State ReadInput(char** argv) {
 int main(int argc, char** argv) {
     vector<State> all_state;
     queue<State> todo_queue;
+    // unordered_map<vector<string>, string> visited;
     map<vector<string>, string> visited;
-    clock_t timer1, timer2;
     State init_state;
     bool is_solve = false;
     
-    // timer1 = clock();
-    // timer2 = clock();
+
 
     init_state = ReadInput(argv);
     
     // store init state
-    all_state.push_back(init_state);
     todo_queue.push(init_state);
     visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
     
@@ -220,12 +253,13 @@ int main(int argc, char** argv) {
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = current_state.Move(dir_iter);
+            new_state.CheckDeadlock();
             if(new_state.is_legal) {
                 map<vector<string>, string>::iterator it = visited.find(new_state.map);
+                // unordered_map<vector<string>, string>::iterator it = visited.find(new_state.map);
                 #pragma omp critical
                 if(it == visited.end()) {
                     todo_queue.push(new_state);
-                    all_state.push_back(new_state);
                     visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
                 }
             }
