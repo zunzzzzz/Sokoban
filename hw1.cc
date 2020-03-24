@@ -34,6 +34,25 @@ public:
     vector<Obstacle> obstacle;
     bool is_legal = true;
     string output;
+    bool CheckSolved() {
+
+        int correct_count = 0;
+        for(int iter_ = 0; iter_ < obstacle.size(); iter_++) {
+            // right position -> "X"
+            if(obstacle[iter_].corret_position) {
+                correct_count++;
+            }
+        } 
+        if(correct_count == obstacle.size()) {
+            // ShowMap(current_state);
+            cout << output << endl;
+            // cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 private:
 };
 void ShowMap(State state) {
@@ -143,12 +162,11 @@ State Move(int direction, State current_state) {
     // ShowMap(new_state);
     return new_state;
 }
-int main(int argc, char** argv) {
-    ifstream file(argv[1]);
-    vector<State> all_state;
+State ReadInput(char** argv) {
     // initial State
     State init_state;
     string tmp;
+    ifstream file(argv[1]);
     while(getline(file, tmp)) {
         init_state.map.push_back(tmp);
     };
@@ -176,43 +194,40 @@ int main(int argc, char** argv) {
         }
         // cout << endl;
     }
-    map<vector<string>, string> visited;
-    all_state.push_back(init_state);
+    return init_state;
+}
+int main(int argc, char** argv) {
+    vector<State> all_state;
     queue<State> todo_queue;
+    map<vector<string>, string> visited;
+    clock_t timer1, timer2;
+    State init_state;
+    bool is_solve = false;
+    
+    // timer1 = clock();
+    // timer2 = clock();
+
+    init_state = ReadInput(argv);
+    
+    // store init state
+    all_state.push_back(init_state);
     todo_queue.push(init_state);
     visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
-    clock_t timer1 = clock();
-    while(true) {
+    
+    while(!is_solve) {
         // cout << "FIND " << all_state.size() << endl;
         // take and pop the first element
         State current_state = todo_queue.front();
         todo_queue.pop();
         // ShowMap(current_state);
         // check whether question is solved
-        int correct_count = 0;
-        for(int iter_ = 0; iter_ < current_state.obstacle.size(); iter_++) {
-            // right position -> "X"
-            if(current_state.obstacle[iter_].corret_position) {
-                correct_count++;
-            }
-        } 
-        if(correct_count == current_state.obstacle.size()) {
-            // ShowMap(current_state);
-            cout << current_state.output << endl;
-            clock_t timer2 = clock();
-            // cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
-            break;
-        }
-        // #pragma omp parallel for
+        is_solve = current_state.CheckSolved();
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = Move(dir_iter, current_state);
             if(new_state.is_legal) {
                 map<vector<string>, string>::iterator it = visited.find(new_state.map);
-                if(it != visited.end()) {
-
-                }
-                else {
+                if(it == visited.end()) {
                     todo_queue.push(new_state);
                     all_state.push_back(new_state);
                     visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
