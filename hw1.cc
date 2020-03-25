@@ -6,14 +6,13 @@
 #include <omp.h>
 #include <unordered_map>
 #include <map>
-
+#include <boost/functional/hash.hpp>
 #define UP 0
 #define LEFT 1
 #define DOWN 2
 #define RIGHT 3
 
 using namespace std;
-
 
 class Obstacle {
 public:
@@ -228,8 +227,8 @@ State ReadInput(char** argv) {
 int main(int argc, char** argv) {
     vector<State> all_state;
     queue<State> todo_queue;
-    // unordered_map<vector<string>, string> visited;
-    map<vector<string>, string> visited;
+    unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
+    // map<vector<string>, string> visited;
     State init_state;
     bool is_solve = false;
     
@@ -255,8 +254,8 @@ int main(int argc, char** argv) {
             new_state = current_state.Move(dir_iter);
             new_state.CheckDeadlock();
             if(new_state.is_legal) {
-                map<vector<string>, string>::iterator it = visited.find(new_state.map);
-                // unordered_map<vector<string>, string>::iterator it = visited.find(new_state.map);
+                // map<vector<string>, string>::iterator it = visited.find(new_state.map);
+                unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
                 #pragma omp critical
                 if(it == visited.end()) {
                     todo_queue.push(new_state);
