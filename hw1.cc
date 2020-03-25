@@ -140,7 +140,7 @@ public:
         return new_state;
     }
     bool WallOrObstacle(int y, int x) {
-        if(map[y][x] == 'x' || map[y][x] == '#') return true;
+        if(map[y][x] == 'x' || map[y][x] == '#' || map[y][x] == 'X') return true;
         else return false;
     }
     void CheckDeadlock() {
