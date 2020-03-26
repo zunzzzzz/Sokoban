@@ -6,6 +6,8 @@
 #include <omp.h>
 #include <unordered_map>
 #include <map>
+#include "tbb/concurrent_queue.h"
+#include "tbb/concurrent_unordered_map.h"
 #include <boost/functional/hash.hpp>
 
 
@@ -49,6 +51,7 @@ public:
             // ShowMap(current_state);
             cout << output << endl;
             // cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
+            exit();
             return true;
         }
         else {
@@ -421,8 +424,8 @@ State ReadInput(char** argv) {
 }
 int main(int argc, char** argv) {
     vector <State> all_state;
-    queue<State> todo_queue;
-    unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
+    tbb::concurrent_queue<State> todo_queue;
+    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
     State init_state;
     bool is_solve = false;
 
@@ -434,8 +437,10 @@ int main(int argc, char** argv) {
     // cout << init_state.player.y << " " << init_state.player.x << endl;
     while(!is_solve) {
         // take and pop the first element
-        State current_state = todo_queue.front();
-        todo_queue.pop();
+        // State current_state = todo_queue.front();
+        // todo_queue.pop();
+        State current_state = *(todo_queue.unsafe_begin());
+        todo_queue.try_pop(current_state);
         // ShowMap(current_state);
 
         // check whether question is solved
@@ -449,8 +454,8 @@ int main(int argc, char** argv) {
                 new_state.CheckDeadlock(dir_iter);
             }
             if(new_state.is_legal && !new_state.is_deadlock) {
-                unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
-                #pragma omp critical
+                tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
+                // #pragma omp critical
                 if(it == visited.end()) {
                     todo_queue.push(new_state);
                     visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
