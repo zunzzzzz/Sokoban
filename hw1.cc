@@ -37,7 +37,6 @@ public:
     bool is_deadlock = false;
     string output;
     bool CheckSolved() {
-
         int correct_count = 0;
         for(int iter_ = 0; iter_ < obstacle.size(); iter_++) {
             // right position -> "X"
@@ -83,6 +82,9 @@ public:
             two_step_x = x + 2;
             new_state.output += "D";
         }
+        // cout << y << " " << x << endl;
+        // cout << one_step_y << " " << one_step_x << endl;
+        // cout << two_step_y << " " << two_step_x << endl;
         if(map[one_step_y][one_step_x] == ' ') {
             new_state.map[one_step_y][one_step_x] = 'o';
             new_state.is_legal = true;
@@ -128,7 +130,6 @@ public:
             new_state.is_legal = false;
             return new_state;
         }
-
         if(map[y][x] == 'o') {
             new_state.map[y][x] = ' ';
         }
@@ -333,28 +334,24 @@ int main(int argc, char** argv) {
     vector<State> all_state;
     queue<State> todo_queue;
     unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
-    // map<vector<string>, string> visited;
     State init_state;
     bool is_solve = false;
-    
-
 
     init_state = ReadInput(argv);
     
     // store init state
     todo_queue.push(init_state);
     visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
-    
+    // cout << init_state.player.y << " " << init_state.player.x << endl;
     while(!is_solve) {
-        // cout << "FIND " << all_state.size() << endl;
         // take and pop the first element
         State current_state = todo_queue.front();
         todo_queue.pop();
         // ShowMap(current_state);
+
         // check whether question is solved
-        
         is_solve = current_state.CheckSolved();
-        
+        // cout << current_state.player.y << " " << current_state.player.x << endl;
         #pragma omp parallel for
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
@@ -363,7 +360,6 @@ int main(int argc, char** argv) {
                 new_state.CheckDeadlock(dir_iter);
             }
             if(new_state.is_legal && !new_state.is_deadlock) {
-                // map<vector<string>, string>::iterator it = visited.find(new_state.map);
                 unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
                 #pragma omp critical
                 if(it == visited.end()) {
