@@ -125,6 +125,7 @@ public:
         }
         else {
             new_state.is_legal = false;
+            return new_state;
         }
 
         if(map[y][x] == 'o') {
@@ -143,8 +144,31 @@ public:
         if(map[y][x] == 'x' || map[y][x] == '#' || map[y][x] == 'X') return true;
         else return false;
     }
-    void CheckDeadlock() {
+    void CheckDeadlock(int direction) {
         vector<Obstacle>::iterator it;
+        int x = player.x;
+        int y = player.y;
+        int one_step_x = x;
+        int one_step_y = y;
+        int two_step_x = x;
+        int two_step_y = y;
+        if(direction == UP) {
+            one_step_y = y - 1;
+            two_step_y = y - 2;
+        }
+        else if(direction == LEFT) {
+            one_step_x = x - 1;
+            two_step_x = x - 2;
+        }
+        else if(direction == DOWN) {
+            one_step_y = y + 1;
+            two_step_y = y + 2;
+        }
+        else if(direction == RIGHT) {
+            one_step_x = x + 1;
+            two_step_x = x + 2;
+        }
+        // on the corner
         for(it = obstacle.begin(); it < obstacle.end(); it++) {
             int x = it->x;
             int y = it->y;
@@ -172,7 +196,87 @@ public:
                     break;
                 }
             }
-            
+        }
+        // on the wall without answer
+        int count_wall = 0;
+        int iter_;
+        bool have_answer;
+        // cout << player.y << " " << player.x << endl;
+        // cout << one_step_y << " " << one_step_x << endl;
+        // cout << two_step_y << " " << two_step_x << endl;
+        if(map[one_step_y][one_step_x] == 'x' && map[two_step_y][two_step_x] == '#') {
+            if(direction == UP || direction == DOWN) {
+                iter_ = 1;
+                have_answer = false;
+                while(!have_answer) {
+                    if(map[one_step_y][one_step_x-iter_] == '.') {
+                        have_answer = true;
+                    }
+                    else if(map[one_step_y][one_step_x-iter_] == '#') {
+                        count_wall += 1;
+                        break;
+                    }
+                    else {
+                        if(map[two_step_y][two_step_x-iter_] == '#') {
+                            iter_++;
+                        }
+                        else break;
+                    }
+                }
+                iter_ = 1;
+                while(!have_answer) {
+                    if(map[one_step_y][one_step_x+iter_] == '.') {
+                        have_answer = true;
+                    }
+                    else if(map[one_step_y][one_step_x+iter_] == '#') {
+                        count_wall += 1;
+                        break;
+                    }
+                    else {
+                        if(map[two_step_y][two_step_x+iter_] == '#') {
+                            iter_++;
+                        }
+                        else break;
+                    }
+                }
+                if(count_wall == 2) is_legal = false;
+            }
+            else if(direction == RIGHT || direction == LEFT) {
+                iter_ = 1;
+                have_answer = false;
+                while(!have_answer) {
+                    if(map[one_step_y-iter_][one_step_x] == '.') {
+                        have_answer = true;
+                    }
+                    else if(map[one_step_y-iter_][one_step_x] == '#') {
+                        count_wall += 1;
+                        break;
+                    }
+                    else {
+                        if(map[two_step_y-iter_][two_step_x] == '#') {
+                            iter_++;
+                        }
+                        else break;
+                    }
+                }
+                iter_ = 1;
+                while(!have_answer) {
+                    if(map[one_step_y+iter_][one_step_x] == '.') {
+                        have_answer = true;
+                    }
+                    else if(map[one_step_y+iter_][one_step_x] == '#') {
+                        count_wall += 1;
+                        break;
+                    }
+                    else {
+                        if(map[two_step_y+iter_][two_step_x] == '#') {
+                            iter_++;
+                        }
+                        else break;
+                    }
+                }
+                if(count_wall == 2) is_legal = false;
+            }
         }
     }
 };
@@ -247,12 +351,16 @@ int main(int argc, char** argv) {
         todo_queue.pop();
         // ShowMap(current_state);
         // check whether question is solved
+        
         is_solve = current_state.CheckSolved();
+        
         #pragma omp parallel for
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = current_state.Move(dir_iter);
-            new_state.CheckDeadlock();
+            if(new_state.is_legal) {
+                new_state.CheckDeadlock(dir_iter);
+            }
             if(new_state.is_legal) {
                 // map<vector<string>, string>::iterator it = visited.find(new_state.map);
                 unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
