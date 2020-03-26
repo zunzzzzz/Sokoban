@@ -34,6 +34,7 @@ public:
     vector<string> map;
     vector<Obstacle> obstacle;
     bool is_legal = true;
+    bool is_deadlock = false;
     string output;
     bool CheckSolved() {
 
@@ -177,22 +178,22 @@ public:
             if(map[y][x] == 'x') {
                 //upright
                 if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x+1) && WallOrObstacle(y, x+1)) {
-                    is_legal = false;
+                    is_deadlock = true;
                     break;
                 }
                 //downright
                 if(WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x+1) && WallOrObstacle(y, x+1)) {
-                    is_legal = false;
+                    is_deadlock = true;
                     break;
                 }
                 //downleft
                 if(WallOrObstacle(y, x-1) && WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x-1)) {
-                    is_legal = false;
+                    is_deadlock = true;
                     break;
                 }
                 //upleft
                 if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x-1) && WallOrObstacle(y, x-1)) {
-                    is_legal = false;
+                    is_deadlock = true;
                     break;
                 }
             }
@@ -239,7 +240,7 @@ public:
                         else break;
                     }
                 }
-                if(count_wall == 2) is_legal = false;
+                if(count_wall == 2) is_deadlock = true;
             }
             else if(direction == RIGHT || direction == LEFT) {
                 iter_ = 1;
@@ -275,7 +276,7 @@ public:
                         else break;
                     }
                 }
-                if(count_wall == 2) is_legal = false;
+                if(count_wall == 2) is_deadlock = true;
             }
         }
     }
@@ -361,7 +362,7 @@ int main(int argc, char** argv) {
             if(new_state.is_legal) {
                 new_state.CheckDeadlock(dir_iter);
             }
-            if(new_state.is_legal) {
+            if(new_state.is_legal && !new_state.is_deadlock) {
                 // map<vector<string>, string>::iterator it = visited.find(new_state.map);
                 unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
                 #pragma omp critical
