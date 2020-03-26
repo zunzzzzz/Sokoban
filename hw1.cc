@@ -182,8 +182,16 @@ public:
                     is_deadlock = true;
                     break;
                 }
+                if(map[y-1][x] == '#' && map[y][x+1] == '#') {
+                    is_deadlock = true;
+                    break;
+                }
                 //downright
                 if(WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x+1) && WallOrObstacle(y, x+1)) {
+                    is_deadlock = true;
+                    break;
+                }
+                if(map[y+1][x] == '#' && map[y][x+1] == '#') {
                     is_deadlock = true;
                     break;
                 }
@@ -192,8 +200,16 @@ public:
                     is_deadlock = true;
                     break;
                 }
+                if(map[y+1][x] == '#' && map[y][x-1] == '#') {
+                    is_deadlock = true;
+                    break;
+                }
                 //upleft
                 if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x-1) && WallOrObstacle(y, x-1)) {
+                    is_deadlock = true;
+                    break;
+                }
+                if(map[y-1][x] == '#' && map[y][x-1] == '#') {
                     is_deadlock = true;
                     break;
                 }
