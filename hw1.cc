@@ -7,13 +7,14 @@
 #include <unordered_map>
 #include <map>
 #include <boost/functional/hash.hpp>
+
+
 #define UP 0
 #define LEFT 1
 #define DOWN 2
 #define RIGHT 3
 
 using namespace std;
-
 class Obstacle {
 public:
     int x;
@@ -146,6 +147,12 @@ public:
         if(map[y][x] == 'x' || map[y][x] == '#' || map[y][x] == 'X') return true;
         else return false;
     }
+    void DetectWallDeadlock() {
+
+    }
+    void DetectCornerDeadlock() {
+
+    }
     void CheckDeadlock(int direction) {
         vector<Obstacle>::iterator it;
         int x = player.x;
@@ -215,13 +222,11 @@ public:
                 }
             }
         }
+        if(is_deadlock) return;
         // on the wall without answer
         int count_wall = 0;
         int iter_;
         bool have_answer;
-        // cout << player.y << " " << player.x << endl;
-        // cout << one_step_y << " " << one_step_x << endl;
-        // cout << two_step_y << " " << two_step_x << endl;
         if(map[one_step_y][one_step_x] == 'x' && map[two_step_y][two_step_x] == '#') {
             if(direction == UP || direction == DOWN) {
                 iter_ = 1;
@@ -257,7 +262,9 @@ public:
                         else break;
                     }
                 }
-                if(count_wall == 2) is_deadlock = true;
+                if(count_wall == 2) {
+                    is_deadlock = true;
+                }
             }
             else if(direction == RIGHT || direction == LEFT) {
                 iter_ = 1;
@@ -293,9 +300,75 @@ public:
                         else break;
                     }
                 }
-                if(count_wall == 2) is_deadlock = true;
+                if(count_wall == 2) {
+                    is_deadlock = true;
+                }
             }
         }
+        if(is_deadlock) return;
+        // double x with walls
+        // for(it = obstacle.begin(); it < obstacle.end(); it++) {
+        //     x = it->x;
+        //     y = it->y;
+        //     if(map[y][x] == 'x') {
+        //         if(map[y][x-1] == '#') {
+        //             if(map[y-1][x+1] == '#') {
+        //                 if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //             if(map[y+1][x+1] == '#') {
+        //                 if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         if(map[y][x+1] == '#') {
+        //             if(map[y-1][x-1] == '#') {
+        //                 if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //             if(map[y+1][x-1] == '#') {
+        //                 if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         if(map[y-1][x] == '#') {
+        //             if(map[y+1][x+1] == '#') {
+        //                 if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //             if(map[y+1][x-1] == '#') {
+        //                 if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         if(map[y+1][x] == '#') {
+        //             if(map[y-1][x+1] == '#') {
+        //                 if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //             if(map[y-1][x-1] == '#') {
+        //                 if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
+        //                     is_deadlock = true;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 };
 void ShowMap(State state) {
@@ -347,7 +420,7 @@ State ReadInput(char** argv) {
     return init_state;
 }
 int main(int argc, char** argv) {
-    vector<State> all_state;
+    vector <State> all_state;
     queue<State> todo_queue;
     unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
     State init_state;
