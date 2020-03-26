@@ -310,68 +310,68 @@ public:
         }
         if(is_deadlock) return;
         // double x with walls
-        // for(it = obstacle.begin(); it < obstacle.end(); it++) {
-        //     x = it->x;
-        //     y = it->y;
-        //     if(map[y][x] == 'x') {
-        //         if(map[y][x-1] == '#') {
-        //             if(map[y-1][x+1] == '#') {
-        //                 if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //             if(map[y+1][x+1] == '#') {
-        //                 if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if(map[y][x+1] == '#') {
-        //             if(map[y-1][x-1] == '#') {
-        //                 if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //             if(map[y+1][x-1] == '#') {
-        //                 if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if(map[y-1][x] == '#') {
-        //             if(map[y+1][x+1] == '#') {
-        //                 if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //             if(map[y+1][x-1] == '#') {
-        //                 if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if(map[y+1][x] == '#') {
-        //             if(map[y-1][x+1] == '#') {
-        //                 if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //             if(map[y-1][x-1] == '#') {
-        //                 if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
-        //                     is_deadlock = true;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        for(it = obstacle.begin(); it < obstacle.end(); it++) {
+            x = it->x;
+            y = it->y;
+            if(map[y][x] == 'x') {
+                if(map[y][x-1] == '#') {
+                    if(map[y-1][x+1] == '#') {
+                        if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                    if(map[y+1][x+1] == '#') {
+                        if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                }
+                if(map[y][x+1] == '#') {
+                    if(map[y-1][x-1] == '#') {
+                        if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                    if(map[y+1][x-1] == '#') {
+                        if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                }
+                if(map[y-1][x] == '#') {
+                    if(map[y+1][x+1] == '#') {
+                        if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                    if(map[y+1][x-1] == '#') {
+                        if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                }
+                if(map[y+1][x] == '#') {
+                    if(map[y-1][x+1] == '#') {
+                        if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                    if(map[y-1][x-1] == '#') {
+                        if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
+                            is_deadlock = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 };
 void ShowMap(State state) {
@@ -446,7 +446,7 @@ int main(int argc, char** argv) {
         // check whether question is solved
         is_solve = current_state.CheckSolved();
         // cout << current_state.player.y << " " << current_state.player.x << endl;
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = current_state.Move(dir_iter);
