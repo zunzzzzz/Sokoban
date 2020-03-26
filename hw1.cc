@@ -51,7 +51,7 @@ public:
             // ShowMap(current_state);
             cout << output << endl;
             // cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
-            exit();
+            exit(0);
             return true;
         }
         else {
