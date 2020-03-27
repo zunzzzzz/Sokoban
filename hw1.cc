@@ -200,48 +200,7 @@ public:
         }
         else return false;
     }
-    void CheckDeadlock(int direction, vector<string> map_deadlock) {
-
-        int x = player.x;
-        int y = player.y;
-        if(direction == UP) y -= 1;
-        if(direction == DOWN) y += 1;
-        if(direction == LEFT) x -= 1;
-        if(direction == RIGHT) x += 1;
-        // cout << y << " " << x << endl;
-        if(map[y][x] == 'x') {
-            // type 1 deadlock
-            if(map_deadlock[y][x] == '-') {
-                is_deadlock = true;
-                return;
-            }
-            // type 2 deadlock
-            if(BlockVertical(map_deadlock, map, x, y) && BlockHorizontal(map_deadlock, map, x, y)) {
-                is_deadlock = true;
-                return;
-            }
-            //upright
-            if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x+1) && WallOrObstacle(y, x+1)) {
-                is_deadlock = true;
-                return;
-            }
-            //downright
-            if(WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x+1) && WallOrObstacle(y, x+1)) {
-                is_deadlock = true;
-                return;
-            }
-            //downleft
-            if(WallOrObstacle(y, x-1) && WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x-1)) {
-                is_deadlock = true;
-                return;
-            }
-            //upleft
-            if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x-1) && WallOrObstacle(y, x-1)) {
-                is_deadlock = true;
-                return;
-            }
-        }
-    }
+    
 };
 class MapDeadlock {
 public:
