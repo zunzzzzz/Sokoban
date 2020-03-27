@@ -164,17 +164,17 @@ public:
             }
             cout << endl;
         }
-        cout << "Obstacle position : " << endl;
-        for(vector<Obstacle>::iterator it = obstacle.begin(); it < obstacle.end(); it++) {
+        // cout << "Obstacle position : " << endl;
+        // for(vector<Obstacle>::iterator it = obstacle.begin(); it < obstacle.end(); it++) {
             
-            cout << (*it).y << " " << (*it).x << " " << (*it).corret_position << endl;
-        }
-        cout << "Goal position : " << endl;
-        for(vector<Goal>::iterator it = goal.begin(); it < goal.end(); it++) {
-            cout << (*it).y << " " << (*it).x << " " << endl;
-        }
+        //     cout << (*it).y << " " << (*it).x << " " << (*it).corret_position << endl;
+        // }
+        // cout << "Goal position : " << endl;
+        // for(vector<Goal>::iterator it = goal.begin(); it < goal.end(); it++) {
+        //     cout << (*it).y << " " << (*it).x << " " << endl;
+        // }
     }
-    void CheckDeadlock(int direction) {
+    void CheckDeadlock(int direction, vector<string> map_deadlock) {
         vector<Obstacle>::iterator it;
         int x = player.x;
         int y = player.y;
@@ -392,6 +392,12 @@ public:
         }
     }
 };
+class MapDeadlock {
+public:
+    int x;
+    int y;
+    vector<string> map;
+};
 State ReadInput(char** argv) {
     // initial State
     State init_state;
@@ -433,6 +439,21 @@ State ReadInput(char** argv) {
     }
     return init_state;
 }
+void Show(vector<string> map) {
+    cout << endl;
+    // for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
+    //     for(int index = 0; index < (*it).length(); index++) {
+    //         cout << (*it)[index];
+    //     }
+    //     cout << endl;
+    // }
+    for(int height_iter = 0; height_iter < map.size(); height_iter++) {
+        for(int width_iter = 0; width_iter < map[height_iter].length(); width_iter++) {
+            cout << map[height_iter][width_iter];
+        }
+        cout << endl;
+    }
+}
 int main(int argc, char** argv) {
     vector <State> all_state;
     tbb::concurrent_queue<State> todo_queue;
@@ -442,37 +463,132 @@ int main(int argc, char** argv) {
 
     init_state = ReadInput(argv);
     init_state.ShowMap();
-    // // store init state
-    // todo_queue.push(init_state);
-    // visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
-    // // cout << init_state.player.y << " " << init_state.player.x << endl;
-    // while(!is_solve) {
-    //     // take and pop the first element
-    //     // State current_state = todo_queue.front();
-    //     // todo_queue.pop();
-    //     State current_state = *(todo_queue.unsafe_begin());
-    //     todo_queue.try_pop(current_state);
-    //     // ShowMap(current_state);
+    vector<string> map_deadlock(init_state.map);
+    // remove obstacle and player, goal left
+    cout << endl;
+    for(vector<string>::iterator it = map_deadlock.begin(); it < map_deadlock.end(); it++) {
+        for(int index = 0; index < (*it).length(); index++) {
+            if((*it)[index] == 'O' || (*it)[index] == 'X') {
+                (*it)[index] = '.';
+            }
+            else if((*it)[index] == '#' || (*it)[index] == '.') {
+                
+            }
+            else {
+                (*it)[index] = '-';
+            }
+            cout << (*it)[index];
+        }
+        cout << endl;
+    }
+    for(vector<Goal>::iterator it = init_state.goal.begin(); it < init_state.goal.end(); it++) {
+        int x = (*it).x;
+        int y = (*it).y;
+        if(map_deadlock[y][x] != '*') {
+            map_deadlock[y][x] = '*';
 
-    //     // check whether question is solved
-    //     is_solve = current_state.CheckSolved();
-    //     // cout << current_state.player.y << " " << current_state.player.x << endl;
-    //     // #pragma omp parallel for
-    //     for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
-    //         State new_state;
-    //         new_state = current_state.Move(dir_iter);
-    //         if(new_state.is_legal) {
-    //             new_state.CheckDeadlock(dir_iter);
-    //         }
-    //         if(new_state.is_legal && !new_state.is_deadlock) {
-    //             tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
-    //             // #pragma omp critical
-    //             if(it == visited.end()) {
-    //                 todo_queue.push(new_state);
-    //                 visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
-    //             }
-    //         }
-    //     }
-    // }
+
+            MapDeadlock init_map_deadlock;
+            init_map_deadlock.x = x;
+            init_map_deadlock.y = y;
+            init_map_deadlock.map = vector<string>(map_deadlock);
+            tbb::concurrent_queue<MapDeadlock> todo_map;
+            tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>> visited_map;
+
+
+            todo_map.push(init_map_deadlock);
+            visited_map.insert(pair<vector<string>, string>(map_deadlock, ""));
+            while (!todo_map.empty())
+            {
+                MapDeadlock current_map = *(todo_map.unsafe_begin());
+                todo_map.try_pop(current_map);
+                x = current_map.x;
+                y = current_map.y;
+                
+
+                for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
+                    MapDeadlock new_map_deadlock;
+                    new_map_deadlock = current_map;
+                    int one_step_x = x;
+                    int two_step_x = x;
+                    int one_step_y = y;
+                    int two_step_y = y;
+                    if(dir_iter == UP) {
+                        one_step_y = y - 1;
+                        two_step_y = y - 2;
+                    }
+                    else if(dir_iter == DOWN) {
+                        one_step_y = y + 1;
+                        two_step_y = y + 2;
+                    }
+                    else if(dir_iter == RIGHT) {
+                        one_step_x = x + 1;
+                        two_step_x = x + 2;
+                    }
+                    else if(dir_iter == LEFT) {
+                        one_step_x = x - 1;
+                        two_step_x = x - 2;
+                    }
+                    // cout << y << " " << x << endl;
+                    // cout << one_step_y << " " << one_step_x << endl;
+                    // cout << two_step_y << " " << two_step_x << endl;
+                    // cout << dir_iter << endl;
+                    // Show(map_deadlock);
+                    // cout << map_deadlock[one_step_y][one_step_x] << " " << map_deadlock[two_step_y][two_step_x] << endl;
+                    bool can_move = false;
+                    if(map_deadlock[one_step_y][one_step_x] == '#' || map_deadlock[two_step_y][two_step_x] == '#') {
+                        can_move = false;
+                    }
+                    else {
+                        map_deadlock[one_step_y][one_step_x] = '*';
+                        new_map_deadlock.map = vector<string>(map_deadlock);
+                        new_map_deadlock.x = one_step_x;
+                        new_map_deadlock.y = one_step_y;
+                        can_move = true;
+                    }
+                    if(can_move) {
+                        tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited_map.find(new_map_deadlock.map);
+                        if(it == visited_map.end()) {
+                            visited_map.insert(pair<vector<string>, string>(map_deadlock, ""));
+                            todo_map.push(new_map_deadlock);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Show(map_deadlock);
+    // store init state
+    todo_queue.push(init_state);
+    visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
+    // cout << init_state.player.y << " " << init_state.player.x << endl;
+    while(!is_solve) {
+        // take and pop the first element
+        // State current_state = todo_queue.front();
+        // todo_queue.pop();
+        State current_state = *(todo_queue.unsafe_begin());
+        todo_queue.try_pop(current_state);
+        // ShowMap(current_state);
+
+        // check whether question is solved
+        is_solve = current_state.CheckSolved();
+        // cout << current_state.player.y << " " << current_state.player.x << endl;
+        // #pragma omp parallel for
+        for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
+            State new_state;
+            new_state = current_state.Move(dir_iter);
+            if(new_state.is_legal) {
+                new_state.CheckDeadlock(dir_iter, map_deadlock);
+            }
+            if(new_state.is_legal && !new_state.is_deadlock) {
+                tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
+                // #pragma omp critical
+                if(it == visited.end()) {
+                    todo_queue.push(new_state);
+                    visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
+                }
+            }
+        }
+    }
     return 0;
 }
