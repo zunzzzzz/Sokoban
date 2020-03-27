@@ -413,7 +413,7 @@ int main(int argc, char** argv) {
 
         // check whether question is solved
         is_solve = current_state.CheckSolved();
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = current_state.Move(dir_iter);
