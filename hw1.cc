@@ -17,6 +17,11 @@
 #define RIGHT 3
 
 using namespace std;
+class Goal {
+public:
+    int x;
+    int y;
+};
 class Obstacle {
 public:
     int x;
@@ -36,6 +41,7 @@ public:
     Player player;
     vector<string> map;
     vector<Obstacle> obstacle;
+    vector<Goal> goal;
     bool is_legal = true;
     bool is_deadlock = false;
     string output;
@@ -150,11 +156,23 @@ public:
         if(map[y][x] == 'x' || map[y][x] == '#' || map[y][x] == 'X') return true;
         else return false;
     }
-    void DetectWallDeadlock() {
-
-    }
-    void DetectCornerDeadlock() {
-
+    void ShowMap() {
+        cout << "Player position : " << player.y << " " << player.x << endl;
+        for(int height_iter = 0; height_iter < map.size(); height_iter++) {
+            for(int width_iter = 0; width_iter < map[height_iter].length(); width_iter++) {
+                cout << map[height_iter][width_iter];
+            }
+            cout << endl;
+        }
+        cout << "Obstacle position : " << endl;
+        for(vector<Obstacle>::iterator it = obstacle.begin(); it < obstacle.end(); it++) {
+            
+            cout << (*it).y << " " << (*it).x << " " << (*it).corret_position << endl;
+        }
+        cout << "Goal position : " << endl;
+        for(vector<Goal>::iterator it = goal.begin(); it < goal.end(); it++) {
+            cout << (*it).y << " " << (*it).x << " " << endl;
+        }
     }
     void CheckDeadlock(int direction) {
         vector<Obstacle>::iterator it;
@@ -374,20 +392,6 @@ public:
         }
     }
 };
-void ShowMap(State state) {
-    cout << "Player position : " << state.player.y << " " << state.player.x << endl;
-    for(int height_iter = 0; height_iter < state.map.size(); height_iter++) {
-        for(int width_iter = 0; width_iter < state.map[height_iter].length(); width_iter++) {
-            cout << state.map[height_iter][width_iter];
-        }
-        cout << endl;
-    }
-    cout << "Obstacle position : " << endl;
-    for(int iter_ = 0; iter_ < state.obstacle.size(); iter_++) {
-        cout << state.obstacle[iter_].y << " " << state.obstacle[iter_].x << " " << state.obstacle[iter_].corret_position << endl;
-    }
-}
-
 State ReadInput(char** argv) {
     // initial State
     State init_state;
@@ -416,6 +420,13 @@ State ReadInput(char** argv) {
                 }
                 init_state.obstacle.push_back(tmp_obstacle);
             }
+            // find goal
+            if(init_state.map[height_iter][width_iter] == 'X' || init_state.map[height_iter][width_iter] == 'O' || init_state.map[height_iter][width_iter] == '.') {
+                Goal tmp_goal;
+                tmp_goal.x = width_iter;
+                tmp_goal.y = height_iter;
+                init_state.goal.push_back(tmp_goal);
+            }
             // cout << init_state.map[height_iter][width_iter];
         }
         // cout << endl;
@@ -430,38 +441,38 @@ int main(int argc, char** argv) {
     bool is_solve = false;
 
     init_state = ReadInput(argv);
-    
-    // store init state
-    todo_queue.push(init_state);
-    visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
-    // cout << init_state.player.y << " " << init_state.player.x << endl;
-    while(!is_solve) {
-        // take and pop the first element
-        // State current_state = todo_queue.front();
-        // todo_queue.pop();
-        State current_state = *(todo_queue.unsafe_begin());
-        todo_queue.try_pop(current_state);
-        // ShowMap(current_state);
+    init_state.ShowMap();
+    // // store init state
+    // todo_queue.push(init_state);
+    // visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
+    // // cout << init_state.player.y << " " << init_state.player.x << endl;
+    // while(!is_solve) {
+    //     // take and pop the first element
+    //     // State current_state = todo_queue.front();
+    //     // todo_queue.pop();
+    //     State current_state = *(todo_queue.unsafe_begin());
+    //     todo_queue.try_pop(current_state);
+    //     // ShowMap(current_state);
 
-        // check whether question is solved
-        is_solve = current_state.CheckSolved();
-        // cout << current_state.player.y << " " << current_state.player.x << endl;
-        // #pragma omp parallel for
-        for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
-            State new_state;
-            new_state = current_state.Move(dir_iter);
-            if(new_state.is_legal) {
-                new_state.CheckDeadlock(dir_iter);
-            }
-            if(new_state.is_legal && !new_state.is_deadlock) {
-                tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
-                // #pragma omp critical
-                if(it == visited.end()) {
-                    todo_queue.push(new_state);
-                    visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
-                }
-            }
-        }
-    }
+    //     // check whether question is solved
+    //     is_solve = current_state.CheckSolved();
+    //     // cout << current_state.player.y << " " << current_state.player.x << endl;
+    //     // #pragma omp parallel for
+    //     for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
+    //         State new_state;
+    //         new_state = current_state.Move(dir_iter);
+    //         if(new_state.is_legal) {
+    //             new_state.CheckDeadlock(dir_iter);
+    //         }
+    //         if(new_state.is_legal && !new_state.is_deadlock) {
+    //             tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
+    //             // #pragma omp critical
+    //             if(it == visited.end()) {
+    //                 todo_queue.push(new_state);
+    //                 visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
+    //             }
+    //         }
+    //     }
+    // }
     return 0;
 }
