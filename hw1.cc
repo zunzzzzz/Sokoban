@@ -168,40 +168,79 @@ public:
         //     cout << (*it).y << " " << (*it).x << " " << endl;
         // }
     }
-    void CheckDeadlock(vector<string> map_deadlock) {
-        vector<Obstacle>::iterator it;
-        for(it = obstacle.begin(); it < obstacle.end(); it++) {
-            int x = it->x;
-            int y = it->y;
-            
-            if(map[y][x] == 'x') {
-                if(map_deadlock[y][x] == '-') {
-                    is_deadlock = true;
-                    break;
-                }
-                //upright
-                if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x+1) && WallOrObstacle(y, x+1)) {
-                    is_deadlock = true;
-                    break;
-                }
-                //downright
-                if(WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x+1) && WallOrObstacle(y, x+1)) {
-                    is_deadlock = true;
-                    break;
-                }
-                //downleft
-                if(WallOrObstacle(y, x-1) && WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x-1)) {
-                    is_deadlock = true;
-                    break;
-                }
-                //upleft
-                if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x-1) && WallOrObstacle(y, x-1)) {
-                    is_deadlock = true;
-                    break;
-                }
+    bool BlockHorizontal(vector<string> map_deadlock, vector<string> tmp_map, int x, int y) {
+        // cout << "H " << y << " " << x << endl;
+        // ShowMap();
+        tmp_map[y][x] = '#';
+        if(tmp_map[y][x-1] == '#' || tmp_map[y][x+1] == '#') return true;
+        else if(map_deadlock[y][x-1] == '-' && map_deadlock[y][x+1] == '-') return true;
+        else if(tmp_map[y][x-1] == 'x' || tmp_map[y][x-1] == 'X') {
+            if(BlockVertical(map_deadlock, tmp_map, x-1, y)) return true;
+            return false;
+        }
+        else if(tmp_map[y][x+1] == 'x' || tmp_map[y][x+1] == 'X') {
+            if(BlockVertical(map_deadlock, tmp_map, x+1, y)) return true;
+            return false;
+        }
+        else return false;
+    }
+    bool BlockVertical(vector<string> map_deadlock, vector<string> tmp_map, int x, int y) {
+        // cout << "V " << y << " " << x << endl;
+        // ShowMap();
+        tmp_map[y][x] = '#';
+        if(tmp_map[y-1][x] == '#' || tmp_map[y+1][x] == '#') return true;
+        else if(map_deadlock[y-1][x] == '-' && map_deadlock[y+1][x] == '-') return true;
+        else if(tmp_map[y+1][x] == 'x' || tmp_map[y+1][x] == 'X') {
+            if(BlockHorizontal(map_deadlock, tmp_map, x, y+1)) return true;
+            return false;
+        }
+        else if(tmp_map[y-1][x] == 'x' || map[y-1][x] == 'X') {
+            if(BlockHorizontal(map_deadlock, tmp_map, x, y-1)) return true;
+            return false;
+        }
+        else return false;
+    }
+    void CheckDeadlock(int direction, vector<string> map_deadlock) {
+
+        int x = player.x;
+        int y = player.y;
+        if(direction == UP) y -= 1;
+        if(direction == DOWN) y += 1;
+        if(direction == LEFT) x -= 1;
+        if(direction == RIGHT) x += 1;
+        // cout << y << " " << x << endl;
+        if(map[y][x] == 'x') {
+            // type 1 deadlock
+            if(map_deadlock[y][x] == '-') {
+                is_deadlock = true;
+                return;
+            }
+            // type 2 deadlock
+            if(BlockVertical(map_deadlock, map, x, y) && BlockHorizontal(map_deadlock, map, x, y)) {
+                is_deadlock = true;
+                return;
+            }
+            //upright
+            if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x+1) && WallOrObstacle(y, x+1)) {
+                is_deadlock = true;
+                return;
+            }
+            //downright
+            if(WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x+1) && WallOrObstacle(y, x+1)) {
+                is_deadlock = true;
+                return;
+            }
+            //downleft
+            if(WallOrObstacle(y, x-1) && WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x-1)) {
+                is_deadlock = true;
+                return;
+            }
+            //upleft
+            if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x-1) && WallOrObstacle(y, x-1)) {
+                is_deadlock = true;
+                return;
             }
         }
-        if(is_deadlock) return;
     }
 };
 class MapDeadlock {
@@ -360,7 +399,7 @@ int main(int argc, char** argv) {
 
     // find simple deadlock map
     map_deadlock = FindDeadlockMap(map_deadlock, init_state.goal);
-    
+    // Show(map_deadlock);
     // store init state
     todo_queue.push(init_state);
     visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
@@ -374,12 +413,12 @@ int main(int argc, char** argv) {
 
         // check whether question is solved
         is_solve = current_state.CheckSolved();
-        // #pragma omp parallel for
+        #pragma omp parallel for
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
             new_state = current_state.Move(dir_iter);
             if(new_state.is_legal) {
-                new_state.CheckDeadlock(map_deadlock);
+                new_state.CheckDeadlock(dir_iter, map_deadlock);
             }
             if(new_state.is_legal && !new_state.is_deadlock) {
                 tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
