@@ -47,18 +47,15 @@ public:
     string output;
     bool CheckSolved() {
         int correct_count = 0;
-        for(int iter_ = 0; iter_ < obstacle.size(); iter_++) {
+        for(vector<Obstacle>::iterator it = obstacle.begin(); it < obstacle.end(); it++) {
             // right position -> "X"
-            if(obstacle[iter_].corret_position) {
+            if((*it).corret_position) {
                 correct_count++;
             }
         } 
         if(correct_count == obstacle.size()) {
-            // ShowMap(current_state);
             cout << output << endl;
-            // cout << ((double) (timer2 - timer1)) / CLOCKS_PER_SEC << endl;
             exit(0);
-            return true;
         }
         else {
             return false;
@@ -92,9 +89,6 @@ public:
             two_step_x = x + 2;
             new_state.output += "D";
         }
-        // cout << y << " " << x << endl;
-        // cout << one_step_y << " " << one_step_x << endl;
-        // cout << two_step_y << " " << two_step_x << endl;
         if(map[one_step_y][one_step_x] == ' ') {
             new_state.map[one_step_y][one_step_x] = 'o';
             new_state.is_legal = true;
@@ -157,10 +151,10 @@ public:
         else return false;
     }
     void ShowMap() {
-        cout << "Player position : " << player.y << " " << player.x << endl;
-        for(int height_iter = 0; height_iter < map.size(); height_iter++) {
-            for(int width_iter = 0; width_iter < map[height_iter].length(); width_iter++) {
-                cout << map[height_iter][width_iter];
+        // cout << "Player position : " << player.y << " " << player.x << endl;
+        for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
+            for(int index = 0; index < (*it).length(); index++) {
+                cout << (*it)[index];
             }
             cout << endl;
         }
@@ -266,18 +260,8 @@ void Show(vector<string> map) {
         cout << endl;
     }
 }
-int main(int argc, char** argv) {
-    vector <State> all_state;
-    tbb::concurrent_queue<State> todo_queue;
-    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
-    State init_state;
-    bool is_solve = false;
-
-    init_state = ReadInput(argv);
-    // init_state.ShowMap();
-    vector<string> map_deadlock(init_state.map);
+vector<string> FindDeadlockMap(vector<string> map_deadlock, vector<Goal> goal) {
     // remove obstacle and player, goal left
-    // cout << endl;
     for(vector<string>::iterator it = map_deadlock.begin(); it < map_deadlock.end(); it++) {
         for(int index = 0; index < (*it).length(); index++) {
             if((*it)[index] == 'O' || (*it)[index] == 'X') {
@@ -289,11 +273,9 @@ int main(int argc, char** argv) {
             else {
                 (*it)[index] = '-';
             }
-            // cout << (*it)[index];
         }
-        // cout << endl;
     }
-    for(vector<Goal>::iterator it = init_state.goal.begin(); it < init_state.goal.end(); it++) {
+    for(vector<Goal>::iterator it = goal.begin(); it < goal.end(); it++) {
         int x = (*it).x;
         int y = (*it).y;
         if(map_deadlock[y][x] != '*') {
@@ -362,12 +344,26 @@ int main(int argc, char** argv) {
                 }
             }
         }
+        
     }
-    // Show(map_deadlock);
+    return map_deadlock;
+}
+int main(int argc, char** argv) {
+    vector <State> all_state;
+    tbb::concurrent_queue<State> todo_queue;
+    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
+    State init_state;
+    bool is_solve = false;
+
+    init_state = ReadInput(argv);
+    vector<string> map_deadlock(init_state.map);
+
+    // find simple deadlock map
+    map_deadlock = FindDeadlockMap(map_deadlock, init_state.goal);
+    
     // store init state
     todo_queue.push(init_state);
     visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
-    // cout << init_state.player.y << " " << init_state.player.x << endl;
     while(!is_solve) {
         // take and pop the first element
         // State current_state = todo_queue.front();
@@ -378,7 +374,6 @@ int main(int argc, char** argv) {
 
         // check whether question is solved
         is_solve = current_state.CheckSolved();
-        // cout << current_state.player.y << " " << current_state.player.x << endl;
         // #pragma omp parallel for
         for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
             State new_state;
