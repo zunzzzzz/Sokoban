@@ -174,43 +174,19 @@ public:
         //     cout << (*it).y << " " << (*it).x << " " << endl;
         // }
     }
-    void CheckDeadlock(int direction, vector<string> map_deadlock) {
+    void CheckDeadlock(vector<string> map_deadlock) {
         vector<Obstacle>::iterator it;
-        int x = player.x;
-        int y = player.y;
-        int one_step_x = x;
-        int one_step_y = y;
-        int two_step_x = x;
-        int two_step_y = y;
-        if(direction == UP) {
-            one_step_y = y - 1;
-            two_step_y = y - 2;
-        }
-        else if(direction == LEFT) {
-            one_step_x = x - 1;
-            two_step_x = x - 2;
-        }
-        else if(direction == DOWN) {
-            one_step_y = y + 1;
-            two_step_y = y + 2;
-        }
-        else if(direction == RIGHT) {
-            one_step_x = x + 1;
-            two_step_x = x + 2;
-        }
-        // on the corner
         for(it = obstacle.begin(); it < obstacle.end(); it++) {
             int x = it->x;
             int y = it->y;
-            // cout << y << " " << x << endl;
             
             if(map[y][x] == 'x') {
-                //upright
-                if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x+1) && WallOrObstacle(y, x+1)) {
+                if(map_deadlock[y][x] == '-') {
                     is_deadlock = true;
                     break;
                 }
-                if(map[y-1][x] == '#' && map[y][x+1] == '#') {
+                //upright
+                if(WallOrObstacle(y-1, x) && WallOrObstacle(y-1, x+1) && WallOrObstacle(y, x+1)) {
                     is_deadlock = true;
                     break;
                 }
@@ -219,16 +195,8 @@ public:
                     is_deadlock = true;
                     break;
                 }
-                if(map[y+1][x] == '#' && map[y][x+1] == '#') {
-                    is_deadlock = true;
-                    break;
-                }
                 //downleft
                 if(WallOrObstacle(y, x-1) && WallOrObstacle(y+1, x) && WallOrObstacle(y+1, x-1)) {
-                    is_deadlock = true;
-                    break;
-                }
-                if(map[y+1][x] == '#' && map[y][x-1] == '#') {
                     is_deadlock = true;
                     break;
                 }
@@ -237,159 +205,9 @@ public:
                     is_deadlock = true;
                     break;
                 }
-                if(map[y-1][x] == '#' && map[y][x-1] == '#') {
-                    is_deadlock = true;
-                    break;
-                }
             }
         }
         if(is_deadlock) return;
-        // on the wall without answer
-        int count_wall = 0;
-        int iter_;
-        bool have_answer;
-        if(map[one_step_y][one_step_x] == 'x' && map[two_step_y][two_step_x] == '#') {
-            if(direction == UP || direction == DOWN) {
-                iter_ = 1;
-                have_answer = false;
-                while(!have_answer) {
-                    if(map[one_step_y][one_step_x-iter_] == '.') {
-                        have_answer = true;
-                    }
-                    else if(map[one_step_y][one_step_x-iter_] == '#') {
-                        count_wall += 1;
-                        break;
-                    }
-                    else {
-                        if(map[two_step_y][two_step_x-iter_] == '#') {
-                            iter_++;
-                        }
-                        else break;
-                    }
-                }
-                iter_ = 1;
-                while(!have_answer) {
-                    if(map[one_step_y][one_step_x+iter_] == '.') {
-                        have_answer = true;
-                    }
-                    else if(map[one_step_y][one_step_x+iter_] == '#') {
-                        count_wall += 1;
-                        break;
-                    }
-                    else {
-                        if(map[two_step_y][two_step_x+iter_] == '#') {
-                            iter_++;
-                        }
-                        else break;
-                    }
-                }
-                if(count_wall == 2) {
-                    is_deadlock = true;
-                }
-            }
-            else if(direction == RIGHT || direction == LEFT) {
-                iter_ = 1;
-                have_answer = false;
-                while(!have_answer) {
-                    if(map[one_step_y-iter_][one_step_x] == '.') {
-                        have_answer = true;
-                    }
-                    else if(map[one_step_y-iter_][one_step_x] == '#') {
-                        count_wall += 1;
-                        break;
-                    }
-                    else {
-                        if(map[two_step_y-iter_][two_step_x] == '#') {
-                            iter_++;
-                        }
-                        else break;
-                    }
-                }
-                iter_ = 1;
-                while(!have_answer) {
-                    if(map[one_step_y+iter_][one_step_x] == '.') {
-                        have_answer = true;
-                    }
-                    else if(map[one_step_y+iter_][one_step_x] == '#') {
-                        count_wall += 1;
-                        break;
-                    }
-                    else {
-                        if(map[two_step_y+iter_][two_step_x] == '#') {
-                            iter_++;
-                        }
-                        else break;
-                    }
-                }
-                if(count_wall == 2) {
-                    is_deadlock = true;
-                }
-            }
-        }
-        if(is_deadlock) return;
-        // double x with walls
-        for(it = obstacle.begin(); it < obstacle.end(); it++) {
-            x = it->x;
-            y = it->y;
-            if(map[y][x] == 'x') {
-                if(map[y][x-1] == '#') {
-                    if(map[y-1][x+1] == '#') {
-                        if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                    if(map[y+1][x+1] == '#') {
-                        if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                }
-                if(map[y][x+1] == '#') {
-                    if(map[y-1][x-1] == '#') {
-                        if(map[y-1][x] == 'X' || map[y-1][x] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                    if(map[y+1][x-1] == '#') {
-                        if(map[y+1][x] == 'X' || map[y+1][x] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                }
-                if(map[y-1][x] == '#') {
-                    if(map[y+1][x+1] == '#') {
-                        if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                    if(map[y+1][x-1] == '#') {
-                        if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                }
-                if(map[y+1][x] == '#') {
-                    if(map[y-1][x+1] == '#') {
-                        if(map[y][x+1] == 'X' || map[y][x+1] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                    if(map[y-1][x-1] == '#') {
-                        if(map[y][x-1] == 'X' || map[y][x-1] == 'x') {
-                            is_deadlock = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
     }
 };
 class MapDeadlock {
@@ -441,15 +259,9 @@ State ReadInput(char** argv) {
 }
 void Show(vector<string> map) {
     cout << endl;
-    // for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
-    //     for(int index = 0; index < (*it).length(); index++) {
-    //         cout << (*it)[index];
-    //     }
-    //     cout << endl;
-    // }
-    for(int height_iter = 0; height_iter < map.size(); height_iter++) {
-        for(int width_iter = 0; width_iter < map[height_iter].length(); width_iter++) {
-            cout << map[height_iter][width_iter];
+    for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
+        for(int index = 0; index < (*it).length(); index++) {
+            cout << (*it)[index];
         }
         cout << endl;
     }
@@ -462,10 +274,10 @@ int main(int argc, char** argv) {
     bool is_solve = false;
 
     init_state = ReadInput(argv);
-    init_state.ShowMap();
+    // init_state.ShowMap();
     vector<string> map_deadlock(init_state.map);
     // remove obstacle and player, goal left
-    cout << endl;
+    // cout << endl;
     for(vector<string>::iterator it = map_deadlock.begin(); it < map_deadlock.end(); it++) {
         for(int index = 0; index < (*it).length(); index++) {
             if((*it)[index] == 'O' || (*it)[index] == 'X') {
@@ -477,9 +289,9 @@ int main(int argc, char** argv) {
             else {
                 (*it)[index] = '-';
             }
-            cout << (*it)[index];
+            // cout << (*it)[index];
         }
-        cout << endl;
+        // cout << endl;
     }
     for(vector<Goal>::iterator it = init_state.goal.begin(); it < init_state.goal.end(); it++) {
         int x = (*it).x;
@@ -529,12 +341,6 @@ int main(int argc, char** argv) {
                         one_step_x = x - 1;
                         two_step_x = x - 2;
                     }
-                    // cout << y << " " << x << endl;
-                    // cout << one_step_y << " " << one_step_x << endl;
-                    // cout << two_step_y << " " << two_step_x << endl;
-                    // cout << dir_iter << endl;
-                    // Show(map_deadlock);
-                    // cout << map_deadlock[one_step_y][one_step_x] << " " << map_deadlock[two_step_y][two_step_x] << endl;
                     bool can_move = false;
                     if(map_deadlock[one_step_y][one_step_x] == '#' || map_deadlock[two_step_y][two_step_x] == '#') {
                         can_move = false;
@@ -557,7 +363,7 @@ int main(int argc, char** argv) {
             }
         }
     }
-    Show(map_deadlock);
+    // Show(map_deadlock);
     // store init state
     todo_queue.push(init_state);
     visited.insert(pair<vector<string>, string>(init_state.map, init_state.output));
@@ -578,7 +384,7 @@ int main(int argc, char** argv) {
             State new_state;
             new_state = current_state.Move(dir_iter);
             if(new_state.is_legal) {
-                new_state.CheckDeadlock(dir_iter, map_deadlock);
+                new_state.CheckDeadlock(map_deadlock);
             }
             if(new_state.is_legal && !new_state.is_deadlock) {
                 tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
