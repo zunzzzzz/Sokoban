@@ -36,7 +36,7 @@ public:
     bool is_legal = true;
     string output;
 
-    State Move(int direction) {
+    State Move(int direction, bool can_pull) {
         State new_state = *this;
         int x = player.x;
         int y = player.y;
@@ -70,9 +70,9 @@ public:
 
         // try to move
         if(map[y][x] == 'o') {
-            if(map[one_step_y][one_step_x] == '#' || map[one_step_y][one_step_x] == 'X' || map[one_step_y][one_step_x] == 'x') is_legal = false;
+            if(map[one_step_y][one_step_x] == '#' || map[one_step_y][one_step_x] == 'X' || map[one_step_y][one_step_x] == 'x') new_state.is_legal = false;
             else if(map[one_step_y][one_step_x] == '.') {
-                if(map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') {
+                if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
                     if(map[opposite_y][opposite_x] == 'x') {
                         new_state.map[opposite_y][opposite_x] = ' ';
                     }
@@ -84,11 +84,11 @@ public:
                 else {
                     new_state.map[y][x] = ' ';
                 }
-                is_legal = true;
+                new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'O';
             }
             else if(map[one_step_y][one_step_x] == ' ') {
-                if(map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') {
+                if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
                     if(map[opposite_y][opposite_x] == 'x') {
                         new_state.map[opposite_y][opposite_x] = ' ';
                     }
@@ -100,14 +100,14 @@ public:
                 else {
                     new_state.map[y][x] = ' ';
                 }
-                is_legal = true;
+                new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'o';
             }
         }
         else if(map[y][x] == 'O') {
-            if(map[one_step_y][one_step_x] == '#' || map[one_step_y][one_step_x] == 'X' || map[one_step_y][one_step_x] == 'x') is_legal = false;
+            if(map[one_step_y][one_step_x] == '#' || map[one_step_y][one_step_x] == 'X' || map[one_step_y][one_step_x] == 'x') new_state.is_legal = false;
             else if(map[one_step_y][one_step_x] == '.') {
-                if(map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') {
+                if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
                     if(map[opposite_y][opposite_x] == 'x') {
                         new_state.map[opposite_y][opposite_x] = ' ';
                     }
@@ -119,11 +119,11 @@ public:
                 else {
                     new_state.map[y][x] = '.';
                 }
-                is_legal = true;
+                new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'O';
             }
             else if(map[one_step_y][one_step_x] == ' ') {
-                if(map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') {
+                if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
                     if(map[opposite_y][opposite_x] == 'x') {
                         new_state.map[opposite_y][opposite_x] = ' ';
                     }
@@ -135,7 +135,7 @@ public:
                 else {
                     new_state.map[y][x] = '.';
                 }
-                is_legal = true;
+                new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'o';
             }
         }
@@ -146,10 +146,7 @@ public:
     }
     void ShowMap() {
         for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
-            for(int index = 0; index < (*it).length(); index++) {
-                cout << (*it)[index];
-            }
-            cout << endl;
+            cout << *it << endl;
         }
         cout << endl;
     }
@@ -201,7 +198,7 @@ int main(int argc, char** argv) {
             else (*it)[index] = ' ';
         }
     }
-    Show(map_goal);
+    // init_state.ShowMap();
     // list all possible player position
     vector<string> tmp_map_goal(map_goal);
     for(int height_iter = 0; height_iter < tmp_map_goal.size(); height_iter++) {
@@ -235,10 +232,11 @@ int main(int argc, char** argv) {
             }
         }
     }
-    Show(tmp_map_goal);
+    // Show(tmp_map_goal);
     
     // store init state
     visited.insert(pair<vector<string>, string>(init_state.map, ""));
+    // cout << player_possible.size() << endl;
     for(vector<Player>::iterator it = player_possible.begin(); it < player_possible.end(); it++) {
         tbb::concurrent_queue<State> todo_queue;
         
@@ -248,54 +246,58 @@ int main(int argc, char** argv) {
         first_state.player = *it;
         todo_queue.push(first_state);
 
-        first_state.ShowMap();
-
         while(!todo_queue.empty()) {
             State current_state = *(todo_queue.unsafe_begin());
             todo_queue.try_pop(current_state);
-            current_state.ShowMap();
+            // current_state.ShowMap();
+            // cout << todo_queue.unsafe_size();
             for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
                 State new_state;
-                new_state = current_state.Move(dir_iter);
-                // new_state.ShowMap();
+                new_state = current_state.Move(dir_iter, true);
                 if(new_state.is_legal) {
-                    todo_queue.push(new_state);
-                    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
-                    if(it == visited.end()) {
+                    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator iter;
+                    iter = visited.find(new_state.map);
+                    if(iter == visited.end()) {
+                        todo_queue.push(new_state);
                         visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
+                    }
+                    else {
+                        if(iter-> second == "") {
+                            for(int index = new_state.output.length() - 1; index >= 0; index--) {
+                                if(new_state.output[index] == 'W') cout << 'S';
+                                if(new_state.output[index] == 'S') cout << 'W';
+                                if(new_state.output[index] == 'A') cout << 'D';
+                                if(new_state.output[index] == 'D') cout << 'A';
+                            }
+                            cout << endl;
+                            exit(0);
+                        }
+                    }
+                }
+                new_state = current_state.Move(dir_iter, false);
+                if(new_state.is_legal) {
+                    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator iter;
+                    iter = visited.find(new_state.map);
+                    if(iter == visited.end()) {
+                        todo_queue.push(new_state);
+                        visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
+                    }
+                    else {
+                        if(iter-> second == "") {
+                            for(int index = new_state.output.length() - 1; index >= 0; index--) {
+                                if(new_state.output[index] == 'W') cout << 'S';
+                                if(new_state.output[index] == 'S') cout << 'W';
+                                if(new_state.output[index] == 'A') cout << 'D';
+                                if(new_state.output[index] == 'D') cout << 'A';
+                            }
+                            cout << endl;
+                            exit(0);
+                        }
                     }
                 }
             }
         }
-        break;
         map_goal[(*it).y][(*it).x] = ' ';
     }
-    // while(!is_solve) {
-    //     // take and pop the first element
-    //     // State current_state = todo_queue.front();
-    //     // todo_queue.pop();
-    //     State current_state = *(todo_queue.unsafe_begin());
-    //     todo_queue.try_pop(current_state);
-    //     // ShowMap(current_state);
-
-    //     // check whether question is solved
-    //     is_solve = current_state.CheckSolved();
-    //     // #pragma omp parallel for
-    //     for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
-    //         State new_state;
-    //         new_state = current_state.Move(dir_iter);
-    //         if(new_state.is_legal) {
-    //             new_state.CheckDeadlock(dir_iter, map_deadlock);
-    //         }
-    //         if(new_state.is_legal && !new_state.is_deadlock) {
-    //             tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator it = visited.find(new_state.map);
-    //             // #pragma omp critical
-    //             if(it == visited.end()) {
-    //                 todo_queue.push(new_state);
-    //                 visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
-    //             }
-    //         }
-    //     }
-    // }
     return 0;
 }
