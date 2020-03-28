@@ -5,5 +5,12 @@
 hw1
 *.exe
 
-#ignore word
+# ignore build
+build.ninja
+
+# ignore report
 *.docx
+*.pdf
+
+
+
