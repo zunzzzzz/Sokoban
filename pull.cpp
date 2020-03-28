@@ -2,10 +2,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <queue>
 #include <omp.h>
 #include <unordered_map>
-#include <map>
 #include "tbb/concurrent_queue.h"
 #include "tbb/concurrent_unordered_map.h"
 #include <boost/functional/hash.hpp>
@@ -35,7 +33,16 @@ public:
     vector<Goal> goal;
     bool is_legal = true;
     string output;
-
+    void ShowOutput() {
+        for(int index = output.length() - 1; index >= 0; index--) {
+            if(output[index] == 'W') cout << 'S';
+            if(output[index] == 'S') cout << 'W';
+            if(output[index] == 'A') cout << 'D';
+            if(output[index] == 'D') cout << 'A';
+        }
+        cout << endl;
+        exit(0);
+    }
     State Move(int direction, bool can_pull) {
         State new_state = *this;
         int x = player.x;
@@ -64,42 +71,26 @@ public:
             opposite_x = x - 1;
             new_state.output += "D";
         }
-        // cout << y << " " << x << endl;
-        // cout << one_step_y << " " << one_step_x << endl;
-        // cout << opposite_y << " " << opposite_x << endl;
-
         // try to move
         if(map[y][x] == 'o') {
             if(map[one_step_y][one_step_x] == '#' || map[one_step_y][one_step_x] == 'X' || map[one_step_y][one_step_x] == 'x') new_state.is_legal = false;
             else if(map[one_step_y][one_step_x] == '.') {
                 if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
-                    if(map[opposite_y][opposite_x] == 'x') {
-                        new_state.map[opposite_y][opposite_x] = ' ';
-                    }
-                    else if(map[opposite_y][opposite_x] == 'X') {
-                        new_state.map[opposite_y][opposite_x] = '.';
-                    }
+                    if(map[opposite_y][opposite_x] == 'x') new_state.map[opposite_y][opposite_x] = ' ';
+                    else if(map[opposite_y][opposite_x] == 'X') new_state.map[opposite_y][opposite_x] = '.';
                     new_state.map[y][x] = 'x';
                 }
-                else {
-                    new_state.map[y][x] = ' ';
-                }
+                else new_state.map[y][x] = ' ';
                 new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'O';
             }
             else if(map[one_step_y][one_step_x] == ' ') {
                 if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
-                    if(map[opposite_y][opposite_x] == 'x') {
-                        new_state.map[opposite_y][opposite_x] = ' ';
-                    }
-                    else if(map[opposite_y][opposite_x] == 'X') {
-                        new_state.map[opposite_y][opposite_x] = '.';
-                    }
+                    if(map[opposite_y][opposite_x] == 'x') new_state.map[opposite_y][opposite_x] = ' ';
+                    else if(map[opposite_y][opposite_x] == 'X') new_state.map[opposite_y][opposite_x] = '.';
                     new_state.map[y][x] = 'x';
                 }
-                else {
-                    new_state.map[y][x] = ' ';
-                }
+                else new_state.map[y][x] = ' ';
                 new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'o';
             }
@@ -108,33 +99,21 @@ public:
             if(map[one_step_y][one_step_x] == '#' || map[one_step_y][one_step_x] == 'X' || map[one_step_y][one_step_x] == 'x') new_state.is_legal = false;
             else if(map[one_step_y][one_step_x] == '.') {
                 if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
-                    if(map[opposite_y][opposite_x] == 'x') {
-                        new_state.map[opposite_y][opposite_x] = ' ';
-                    }
-                    else if(map[opposite_y][opposite_x] == 'X') {
-                        new_state.map[opposite_y][opposite_x] = '.';
-                    }
+                    if(map[opposite_y][opposite_x] == 'x') new_state.map[opposite_y][opposite_x] = ' ';
+                    else if(map[opposite_y][opposite_x] == 'X') new_state.map[opposite_y][opposite_x] = '.';
                     new_state.map[y][x] = 'X';
                 }
-                else {
-                    new_state.map[y][x] = '.';
-                }
+                else new_state.map[y][x] = '.';
                 new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'O';
             }
             else if(map[one_step_y][one_step_x] == ' ') {
                 if((map[opposite_y][opposite_x] == 'x' || map[opposite_y][opposite_x] == 'X') && can_pull) {
-                    if(map[opposite_y][opposite_x] == 'x') {
-                        new_state.map[opposite_y][opposite_x] = ' ';
-                    }
-                    else if(map[opposite_y][opposite_x] == 'X') {
-                        new_state.map[opposite_y][opposite_x] = '.';
-                    }
+                    if(map[opposite_y][opposite_x] == 'x') new_state.map[opposite_y][opposite_x] = ' ';
+                    else if(map[opposite_y][opposite_x] == 'X') new_state.map[opposite_y][opposite_x] = '.';
                     new_state.map[y][x] = 'X';
                 }
-                else {
-                    new_state.map[y][x] = '.';
-                }
+                else new_state.map[y][x] = '.';
                 new_state.is_legal = true;
                 new_state.map[one_step_y][one_step_x] = 'o';
             }
@@ -174,10 +153,7 @@ State ReadInput(char** argv) {
 }
 void Show(vector<string> map) {
     for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
-        for(int index = 0; index < (*it).length(); index++) {
-            cout << (*it)[index];
-        }
-        cout << endl;
+        cout << *it;
     }
     cout << endl;
 }
@@ -198,7 +174,6 @@ int main(int argc, char** argv) {
             else (*it)[index] = ' ';
         }
     }
-    // init_state.ShowMap();
     // list all possible player position
     vector<string> tmp_map_goal(map_goal);
     for(int height_iter = 0; height_iter < tmp_map_goal.size(); height_iter++) {
@@ -232,14 +207,12 @@ int main(int argc, char** argv) {
             }
         }
     }
-    // Show(tmp_map_goal);
-    
     // store init state
     visited.insert(pair<vector<string>, string>(init_state.map, ""));
     // cout << player_possible.size() << endl;
     for(vector<Player>::iterator it = player_possible.begin(); it < player_possible.end(); it++) {
         tbb::concurrent_queue<State> todo_queue;
-        
+        // store first state
         map_goal[(*it).y][(*it).x] = 'o';
         State first_state;
         first_state.map = map_goal;
@@ -249,49 +222,24 @@ int main(int argc, char** argv) {
         while(!todo_queue.empty()) {
             State current_state = *(todo_queue.unsafe_begin());
             todo_queue.try_pop(current_state);
-            // current_state.ShowMap();
-            // cout << todo_queue.unsafe_size();
+            current_state.ShowMap();
+            // four direction WASD
+            #pragma omp parallel for
             for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
-                State new_state;
-                new_state = current_state.Move(dir_iter, true);
-                if(new_state.is_legal) {
-                    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator iter;
-                    iter = visited.find(new_state.map);
-                    if(iter == visited.end()) {
-                        todo_queue.push(new_state);
-                        visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
-                    }
-                    else {
-                        if(iter-> second == "") {
-                            for(int index = new_state.output.length() - 1; index >= 0; index--) {
-                                if(new_state.output[index] == 'W') cout << 'S';
-                                if(new_state.output[index] == 'S') cout << 'W';
-                                if(new_state.output[index] == 'A') cout << 'D';
-                                if(new_state.output[index] == 'D') cout << 'A';
-                            }
-                            cout << endl;
-                            exit(0);
+                // pull or not pull
+                for(int i = 0; i < 2; i++) {
+                    State new_state;
+                    if(i == 0) new_state = current_state.Move(dir_iter, true);
+                    else if(i == 1) new_state = current_state.Move(dir_iter, false);
+                    if(new_state.is_legal) {
+                        tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator iter;
+                        iter = visited.find(new_state.map);
+                        if(iter == visited.end()) {
+                            todo_queue.push(new_state);
+                            visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
                         }
-                    }
-                }
-                new_state = current_state.Move(dir_iter, false);
-                if(new_state.is_legal) {
-                    tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>>::iterator iter;
-                    iter = visited.find(new_state.map);
-                    if(iter == visited.end()) {
-                        todo_queue.push(new_state);
-                        visited.insert(pair<vector<string>, string>(new_state.map, new_state.output));
-                    }
-                    else {
-                        if(iter-> second == "") {
-                            for(int index = new_state.output.length() - 1; index >= 0; index--) {
-                                if(new_state.output[index] == 'W') cout << 'S';
-                                if(new_state.output[index] == 'S') cout << 'W';
-                                if(new_state.output[index] == 'A') cout << 'D';
-                                if(new_state.output[index] == 'D') cout << 'A';
-                            }
-                            cout << endl;
-                            exit(0);
+                        else {
+                            if(iter-> second == "") new_state.ShowOutput();
                         }
                     }
                 }
