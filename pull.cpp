@@ -123,12 +123,6 @@ public:
         new_state.player.y = one_step_y;
         return new_state;
     }
-    void ShowMap() {
-        for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
-            cout << *it << endl;
-        }
-        cout << endl;
-    }
 };
 State ReadInput(char** argv) {
     // initial State
@@ -151,13 +145,6 @@ State ReadInput(char** argv) {
     }
     return init_state;
 }
-void Show(vector<string> map) {
-    for(vector<string>::iterator it = map.begin(); it < map.end(); it++) {
-        cout << *it;
-    }
-    cout << endl;
-}
-
 int main(int argc, char** argv) {
     vector<Player> player_possible;
     tbb::concurrent_unordered_map<vector<string>, string, boost::hash<vector<string>>> visited;
@@ -222,7 +209,6 @@ int main(int argc, char** argv) {
         while(!todo_queue.empty()) {
             State current_state = *(todo_queue.unsafe_begin());
             todo_queue.try_pop(current_state);
-            current_state.ShowMap();
             // four direction WASD
             #pragma omp parallel for
             for(int dir_iter = 0; dir_iter < 4; dir_iter++) {
